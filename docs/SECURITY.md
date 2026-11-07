@@ -2,18 +2,15 @@
 
 ## Threat model
 
-`trysac-alert-rule-lint` is a pure library without I/O. The main risks are:
+`alert-rule-lint` is a library. Security focuses on preventing DoS during YAML processing and ensuring input does not contain malicious payloads.
 
-- **Supply chain**: a compromised dependency or CI action. Mitigation: no runtime dependencies,
-  Dependabot weekly updates, actions pinned to major versions, minimal workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and fail with
-  explicit exceptions; never `eval`, `exec` or deserialize untrusted data.
+## Defended limits
 
-## Publishing
+- **Anchor/Alias Injection**: The linter uses `yaml.scan` with `yaml.SafeLoader` to reject `AnchorToken` and `AliasToken` before parsing, effectively stopping YAML billion-laughs attacks.
+- **Depth Limits**: The library performs iterative depth checks on the loaded YAML, limiting nested structures to a depth of 20 (`too_deep`).
+- **Memory Exhaustion**: Inputs are capped at 5 MiB (5,242,880 bytes). Error messages are truncated to 200 characters.
+- **Arbitrary Code Execution**: `yaml.safe_load_all` is used exclusively. No unsafe loaders are accessible to the user.
 
-Releases are published to PyPI with trusted publishing (OIDC) when available, never with a
-long-lived token stored in the repository.
+## Not defended
 
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- The library does not sanitize output messages for downstream systems (e.g., terminal output or web UI). It assumes the calling application performs necessary output encoding.

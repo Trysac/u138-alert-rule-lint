@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Add alert_rule_lint library and CLI for policy and structural validation of Prometheus alerting rules.
 - Initial project structure from the factory utility template.
