@@ -17,7 +17,12 @@ classifiers = [
     "Operating System :: OS Independent",
     "Typing :: Typed",
 ]
-dependencies = []
+dependencies = [
+    "pyyaml>=6.0,<7",
+]
+
+[project.scripts]
+alert-rule-lint = "alert_rule_lint.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/Trysac/u138-alert-rule-lint"

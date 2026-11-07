@@ -1,20 +1,10 @@
 # Testing
 
-## Running
+Tests are located in `tests/test_alert_rule_lint.py`. They exercise the public API and simulate various rule file scenarios.
 
-```sh
-uv run pytest --cov=alert_rule_lint   # tests with coverage report
-uv run python scripts/check.py      # every gate, as CI and the factory run it
-```
+## Coverage
 
-## Policy
-
-- Branch coverage of `src/alert_rule_lint` must stay at or above 80 %; the gate fails below it.
-- Tests exercise the public API (`import alert_rule_lint`) and assert every observable effect:
-  return values, raised exceptions and their messages.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
-
-## Layout
-
-`tests/test_<module>.py` mirrors each public module. Shared fixtures go in `tests/conftest.py`.
+- **Safety Checks**: Verifies rejection of anchors, aliases, large inputs, and deeply nested structures.
+- **Policy Enforcement**: Verifies ALR001 through ALR009, asserting accurate identification of missing labels, invalid severities, bad durations, and unknown keys.
+- **CLI Interaction**: Exercises the CLI entry point, confirming correct exit codes for successful linting, errors, and invalid I/O.
+- **Edge Cases**: Validates behavior on empty files, invalid YAML, and multi-document YAML inputs.

@@ -1,29 +1,18 @@
 # Architecture
 
-## Purpose
+`alert-rule-lint` is a lightweight policy linter for Prometheus rules.
 
-`trysac-alert-rule-lint` is a small, dependency-free Python library: Lint Prometheus alerting rule files for structure and team policy: required labels and annotations, severity values, durations, unknown keys and naming
+## Components
 
-## Shape
-
-```text
-caller code --> alert_rule_lint (public API in __init__.py)
-                    |
-                    +-- pure functions, no I/O, no global state
-```
-
-- **Public API**: the names listed in `__all__` of `src/alert_rule_lint/__init__.py`. Anything else is
-  internal and may change without a major version.
-- **Errors**: invalid input raises built-in exceptions (`ValueError`, `TypeError`) with a clear
-  message; the library never prints or exits.
-- **Side effects**: none. If a feature needs I/O, isolate it in its own module behind a small
-  interface and record the choice in an ADR.
-
-## Quality contract
-
-`scripts/check.py` is the single definition of the gates; `fabrica.json` tells the factory and CI
-how to run it. See [TESTING.md](TESTING.md).
-
-## Decisions
-
-Architecture decisions are recorded in [decisions/](decisions/) as numbered ADRs.
+1. **Pre-processor**: Enforces input size limits and performs an `AnchorToken`/`AliasToken` scan.
+2. **YAML Parser**: Uses `yaml.safe_load_all` to build a document representation, failing on multi-document files.
+3. **Validator**: Traverses the document iteratively, ensuring the tree depth <= 20.
+4. **Rule Engine**: Validates every group and rule against the defined policies:
+    - `ALR001`: Validates group names.
+    - `ALR002`: Validates rule `expr`.
+    - `ALR003`: Validates rule type (alert/record).
+    - `ALR004-006`: Validates labels, severity values, and annotations.
+    - `ALR007`: Validates durations.
+    - `ALR008`: Validates alert names.
+    - `ALR009`: Validates rule keys.
+5. **Post-processor**: Sorts findings by path (`groups[i].rules[j]`) and error code.

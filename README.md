@@ -1,48 +1,56 @@
 # alert-rule-lint
 
-[![PyPI version](https://img.shields.io/pypi/v/trysac-alert-rule-lint)](https://pypi.org/project/trysac-alert-rule-lint/)
-[![License: MIT](https://img.shields.io/pypi/l/trysac-alert-rule-lint)](LICENSE)
-[![CI](https://github.com/Trysac/u138-alert-rule-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u138-alert-rule-lint/actions/workflows/ci.yml)
+[![CI](https://github.com/Trysac/u138-alert-rule-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u138-alert-rule-lint/actions)
 
-Lint Prometheus alerting rule files for structure and team policy: required labels and annotations, severity values, durations, unknown keys and naming
+Lint Prometheus alerting and recording rule files for structural compliance and team-defined policies.
 
-## Problem
+## Overview
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+Prometheus rule files often pass syntax checks via `promtool` but fail in production or page the wrong team due to missing labels, annotations, or misconfigured durations. `alert-rule-lint` enforces organization policies (required labels, annotations, naming, and key validation) without needing a Prometheus binary.
 
-## Install
+## Installation
 
-```sh
-pip install trysac-alert-rule-lint
-# or
-uv add trysac-alert-rule-lint
+```bash
+pip install alert-rule-lint
 ```
-
-Requires Python 3.10 or newer. No runtime dependencies.
 
 ## Usage
 
 ```python
-import alert_rule_lint
+from alert_rule_lint import lint_text
 
-# normalize() trims surrounding whitespace and lower-cases the text.
-print(alert_rule_lint.normalize("  Hello World "))  # -> "hello world"
-
-# Blank input is rejected explicitly instead of returning an empty string.
-try:
-    alert_rule_lint.normalize("   ")
-except ValueError as exc:
-    print(f"rejected: {exc}")
+rules = """
+groups:
+  - name: test
+    rules:
+      - alert: HighLatency
+        expr: latency > 10
+        labels: {severity: critical}
+        annotations: {summary: High latency}
+"""
+findings = lint_text(rules)
+print(f"Found {len(findings)} issues")
 ```
 
-## Documentation
+### CLI
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+```bash
+python -m alert_rule_lint rules.yml
+```
 
-## License
+- Exit `0`: No error-level findings (warnings permitted).
+- Exit `1`: Linting errors found.
+- Exit `2`: Usage error, I/O error, or invalid YAML syntax.
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+## Why not promtool?
+
+`promtool` only validates syntax (e.g., valid PromQL). `alert-rule-lint` validates team-specific policy: it ensures mandatory labels (like `severity`) and annotations (like `summary`) are present, enforces alert naming conventions, and detects unknown configuration keys.
+
+## API Summary
+
+- `lint_text(text: str, config: LintConfig = ..., max_bytes: int = 5242880) -> list[Finding]`
+- `lint_file(path: str | Path, config: LintConfig = ...) -> list[Finding]`
+- `LintConfig`: Configures `required_labels`, `severities`, `required_annotations`, and `alert_name_pattern`.
+- `Finding`: Returned with `code`, `severity` ('error' | 'warning'), `path`, and `message`.
+
+Safety limits: Max 5 MiB input size, 20-level max document depth. For more, see [docs/SECURITY.md](docs/SECURITY.md).
