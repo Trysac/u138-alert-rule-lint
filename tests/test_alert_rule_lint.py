@@ -242,6 +242,7 @@ groups:
     captured = capsys.readouterr()
     assert exit_code == 1
     assert f"{rule_file}:groups[0].rules[0]: ALR004 error missing label severity" in captured.out
+    assert "rules.yml:groups[0].rules[0]: ALR004 error missing label severity" in captured.out
 
     # Only warnings -> exit code 0
     warn_file = tmp_path / "warn.yml"
