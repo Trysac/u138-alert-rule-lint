@@ -10,8 +10,10 @@ Prometheus rule files often pass syntax checks via `promtool` but fail in produc
 
 ## Installation
 
+Not published to PyPI yet. Install it from GitHub:
+
 ```bash
-pip install alert-rule-lint
+pip install "git+https://github.com/Trysac/u138-alert-rule-lint"
 ```
 
 ## Usage
